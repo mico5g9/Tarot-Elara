@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarot de los 23 Arcanos</title>
+<style>
+:root {
+  --fondo: #171323; --panel: #241b35; --panel2: #302342;
+  --oro: #e4c57a; --texto: #f8f0df; --suave: #d2c5df; --borde: #92764b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: radial-gradient(ellipse at top, #352448 0%, var(--fondo) 62%);
+  color: var(--texto); font-family: Georgia, "Times New Roman", serif;
+}
+header { text-align:center; padding: 36px 18px 26px; border-bottom:1px solid var(--borde); }
+header .estrella { color:var(--oro); font-size:24px; letter-spacing:8px; }
+h1 { color:var(--oro); margin:12px 0 8px; font-size:clamp(1.8rem,4vw,3rem); }
+header p { color:var(--suave); max-width:720px; margin:0 auto; line-height:1.6; }
+main { max-width:1200px; padding:24px 16px 50px; margin:auto; }
+section { margin:28px 0 42px; }
+h2 { color:var(--oro); }
+.controls { display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin:22px 0; }
+select, input, button {
+  border:1px solid var(--borde); border-radius:9px; padding:12px 14px; font:inherit;
+}
+select, input { color:var(--texto); background:var(--panel); }
+button { background:var(--oro); color:#21182d; cursor:pointer; font-weight:bold; }
+button:hover { filter:brightness(1.1); transform:translateY(-1px); }
+button.secundario { background:var(--panel2); color:var(--texto); }
+#tirada { display:grid; grid-template-columns:repeat(auto-fit,minmax(245px,1fr)); gap:18px; margin-top:24px; }
+/* Galería que muestra únicamente las imágenes de la tirada actual */
+#imagenes-tirada {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
+  align-items: start;
+  margin: 22px 0;
+}
+#imagenes-tirada:empty { display: none; }
+#imagenes-tirada .imagen-marco {
+  max-width: 190px;
+  margin: 0 auto;
+}
+#imagenes-tirada .imagen-posicion {
+  text-align: center;
+  color: var(--oro);
+  font-size: .9rem;
+  margin-top: 8px;
+}
+#imagenes-tirada.tirada-cinco-imagenes {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+#imagenes-tirada.tirada-cinco-imagenes .imagen-marco {
+  max-width: 150px;
+}
+/* Diseño adaptable para tablet */
+@media (min-width: 651px) and (max-width: 1000px) {
+  main { padding: 22px 18px 40px; }
+  #imagenes-tirada {
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 12px;
+  }
+  #imagenes-tirada.tirada-cinco-imagenes {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #imagenes-tirada.tirada-cinco-imagenes .imagen-marco {
+    max-width: 125px;
+  }
+  #tirada { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  #tirada.tirada-cinco { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #tirada.tirada-cinco .carta { padding: 12px; }
+  #mazo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Diseño adaptable para móviles */
+@media (max-width: 650px) {
+  header { padding: 26px 14px 20px; }
+  header p { font-size: .95rem; }
+  main { padding: 18px 12px 32px; }
+  section { margin: 22px 0 32px; }
+  .controls { flex-direction: column; align-items: stretch; gap: 9px; margin: 18px 0; }
+  .controls select, .controls button { width: 100%; min-height: 44px; font-size: 1rem; }
+  #imagenes-tirada {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  #imagenes-tirada .imagen-marco { max-width: 160px; }
+  #imagenes-tirada.tirada-cinco-imagenes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  #imagenes-tirada.tirada-cinco-imagenes .imagen-marco { max-width: 145px; }
+  #tirada { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 16px; }
+  #tirada.tirada-cinco { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #tirada.tirada-cinco .carta { padding: 10px; }
+  #tirada.tirada-cinco .imagen-marco { max-width: 125px; }
+  #tirada.tirada-cinco .carta h3 { font-size: 1rem; }
+  #tirada.tirada-cinco .carta p { font-size: .82rem; overflow-wrap: anywhere; }
+  .carta { padding: 15px; }
+  .carta h3 { font-size: 1.2rem; }
+  .carta .icono { font-size: 2rem; margin: 8px; }
+  .etiqueta { line-height: 1.4; }
+  #busqueda { width: 100%; min-height: 44px; font-size: 16px; }
+  #mazo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .ficha { padding: 14px; }
+  .historial-item { padding: 12px; }
+  .historial-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .historial-carta { padding: 8px; overflow-wrap: anywhere; }
+  .historial-header { gap: 8px; flex-wrap: wrap; }
+  .nota { font-size: .92rem; }
+  footer { padding: 20px 12px; }
+}
+
+/* En móviles muy estrechos, priorizar la legibilidad */
+@media (max-width: 380px) {
+  #tirada.tirada-cinco { grid-template-columns: minmax(0, 1fr); }
+  #imagenes-tirada.tirada-cinco-imagenes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .historial-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* En la tirada de 5, mostrar las cinco cartas juntas en una misma fila en pantallas grandes */
+#tirada.tirada-cinco { grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
+#tirada.tirada-cinco .carta { padding:12px; min-width:0; }
+#tirada.tirada-cinco .imagen-marco { max-width:150px; margin:8px auto; }
+#tirada.tirada-cinco .carta h3 { font-size:1.05rem; overflow-wrap:anywhere; }
+#tirada.tirada-cinco .carta p { font-size:.86rem; line-height:1.4; }
+@media (max-width: 1000px) {
+  #tirada.tirada-cinco { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+  #tirada.tirada-cinco { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  #tirada.tirada-cinco .imagen-marco { max-width:130px; }
+}
+.carta {
+  border:1px solid var(--borde); border-radius:15px; padding:20px;
+  background:linear-gradient(155deg,#382749,var(--panel) 70%);
+  box-shadow:0 12px 28px #0004; animation:entrada .35s ease-out;
+}
+.carta .numero { color:var(--oro); letter-spacing:2px; font-size:.9rem; }
+.carta .icono { font-size:2.6rem; text-align:center; margin:12px; color:var(--oro); }
+.carta h3 { color:var(--oro); text-align:center; font-size:1.35rem; margin:8px 0; }
+.etiqueta { text-align:center; color:#e9d7a5; font-size:.85rem; margin:10px 0 16px; }
+.carta p { line-height:1.55; color:var(--suave); }
+.carta strong { color:var(--oro); }
+#busqueda { width:min(100%,520px); display:block; margin:18px auto; }
+#mazo { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.ficha { background:var(--panel); border:1px solid #5f4a72; border-radius:12px; padding:17px; }
+.ficha h3 { color:var(--oro); margin:0 0 7px; }
+.claves { color:#e8d4a1; font-size:.92rem; }
+.ficha p { line-height:1.5; color:var(--suave); font-size:.94rem; }
+.vacio { text-align:center; color:var(--suave); padding:24px; }
+.nota { border-left:3px solid var(--oro); padding:12px 16px; background:#ffffff08; color:var(--suave); line-height:1.6; }
+
+/* Estilos para el Historial */
+.historial-item {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+.historial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #51405e;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.historial-fecha {
+  color: var(--oro);
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+.historial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.historial-carta {
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+.historial-carta strong {
+  color: var(--oro);
+}
+
+
+.imagen-marco {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 2 / 3;
+  margin: 12px auto;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #463151, #191321);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.imagen-carta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Las cartas invertidas se muestran boca abajo en la tirada. */
+.imagen-carta.imagen-invertida {
+  transform: rotate(180deg);
+}
+.imagen-fallback {
+  color: var(--oro);
+  font-size: 3.5rem;
+}
+
+footer { text-align:center; padding:24px; color:#b6a8c7; border-top:1px solid #51405e; font-size:.9rem; }
+@keyframes entrada { from {opacity:0; transform:translateY(8px)} to {opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<header>
+  <div class="estrella">✧ ✦ ✧</div>
+  <h1>El Tarot de Elara "Los Arcanos"</h1>
+  <p>Un mazo de 23 cartas para explorar símbolos, decisiones, contradicciones y posibilidades. Cada carta incluye su territorio y sus interpretaciones al derecho e invertida.</p>
+</header>
+<main>
+  <section>
+    <h2 style="text-align:center">Elara, haz tu tirada</h2>
+    <p style="text-align:center;color:var(--suave)">Piensa en una pregunta y elige cuántas cartas quieres sacar.</p>
+    <div class="controls">
+      <select id="cantidad" aria-label="Cantidad de cartas">
+        <option value="1">1 carta · Consejo o reflexión</option>
+        <option value="3" selected>3 cartas · Situación, reto y orientación</option>
+        <option value="5">5 cartas · Tirada ampliada</option>
+      </select>
+      <button id="tirar">Barajar y revelar</button>
+      <button id="limpiar" class="secundario">Limpiar tirada</button>
+    </div>
+    <h3 id="titulo-imagenes-tirada" style="text-align:center;color:var(--oro);display:none;">Cartas de tu tirada</h3>
+    <div id="imagenes-tirada" aria-label="Imágenes de las cartas de la tirada"></div>
+    <div id="tirada"><p class="vacio">Tus cartas aparecerán aquí.</p></div>
+  </section>
+
+  <!-- Sección de Historial -->
+  <section>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+      <h2>Historial de Tiradas</h2>
+      <button id="borrarHistorial" class="secundario" style="font-size:0.85rem; padding:8px 12px;">Borrar Historial</button>
+    </div>
+    <div id="historial"><p class="vacio">Aún no has realizado ninguna tirada en esta sesión.</p></div>
+  </section>
+
+  <section>
+    <h2>Consultar el mazo</h2>
+    <p style="color:var(--suave)">Busca por número, nombre, territorio o palabra del significado.</p>
+    <input id="busqueda" type="search" placeholder="Ej.: 19, Hilo Rojo, dependencia..." aria-label="Buscar una carta">
+    <div id="mazo"></div>
+  </section>
+  <p class="nota"><strong>Nota:</strong> esta baraja contiene las cartas numeradas del 0 al 22 tal como aparecen en tu documento. El significado de una tirada es simbólico y sirve para reflexionar; no determina el futuro ni sustituye tu propio criterio.</p>
+</main>
+<footer>Tarot de los Arcanos · Mazo personalizado</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*PONER EL RESTO DE LAS CARTAS DEL TAROT CON ESTOS NOMBRES*/
+
+
+<script>
+const cartas = [
+{n:0,nombre:"El Baifo",imagen:"imagenes/0.EL BAIFO.jpeg",claves:"Instinto · Libertad · Espontaneidad",territorio:"El primer paso que se da sin tener todas las respuestas.",derecho:"Iniciativa espontánea, curiosidad, libertad para explorar, valentía ante lo desconocido y disposición a aprender haciendo.",invertida:"La impulsividad puede convertirse en imprudencia; la libertad, en rechazo de cualquier responsabilidad; el valor, en incapacidad para reconocer un peligro evidente.",icono:"✧"},
+{n:1,nombre:"La Polilla",imagen:"imagenes/1.LA POLILLA.jpeg",claves:"Fascinación · Deseo · Tentación",territorio:"Aquello que nos atrae con tanta fuerza que puede cambiar nuestras prioridades.",derecho:"Pasión, interés profundo, llamada interior, descubrimiento de algo que despierta la voluntad, deseo y tentación.",invertida:"Obsesión que estrecha el mundo; idealización que impide ver la realidad; deseo o tentación por lo prohibido; atracción hacia algo que promete mucho y exige demasiado. Puede llevar a la autodestrucción o a perseguir algo que te perjudica.",icono:"❋"},
+{n:2,nombre:"La Llave Hundida",imagen:"imagenes/2.LA LLAVE HUNDIDA.jpeg",claves:"Acceso · Revelación · Solución",territorio:"Conseguir la pieza de información que permite abrir una posibilidad.",derecho:"Descubrimiento útil, respuesta inesperada, acceso a un recurso, comprensión de una situación antes confusa y saber reservado.",invertida:"Información incompleta; solución que no encaja con el problema; insistencia en abrir una puerta para la que aún no se tiene la llave adecuada; secretos mal gestionados.",icono:"⚿"},
+{n:3,nombre:"La Semilla Agrietada",imagen:"imagenes/3.LA SEMILLA AGRIETADA.jpeg",claves:"Potencial · Fragilidad · Comienzo",territorio:"Algo valioso está empezando a desarrollarse, pero todavía necesita condiciones adecuadas.",derecho:"Talento que aún no se ha desarrollado; oportunidad incipiente que necesita cuidados; idea prometedora que todavía no está preparada para exponerse; crecimiento lento; aprendizaje inicial y fertilidad.",invertida:"Potencial desatendido por falta de cuidado; presión por obtener resultados antes de tiempo; miedo a empezar por sentirse demasiado vulnerable; intentar crecer en un entorno que no proporciona lo necesario; crecimiento prematuro e infertilidad.",icono:"❀"},
+{n:4,nombre:"La Campana Muda",imagen:"imagenes/4.LA CAMPANA MUDA.jpeg",claves:"Silencio · Prudencia · Advertencia",territorio:"Lo que comunica la ausencia de palabras.",derecho:"Observar antes de responder, advertir señales sutiles, respetar una pausa y comprender que el silencio también aporta información.",invertida:"Callar por miedo; interpretar el silencio como respuesta definitiva sin comprobarlo; ignorar una señal incómoda o no expresar algo necesario.",icono:"♧"},
+{n:5,nombre:"El Zorro de Cristal",imagen:"imagenes/5.EL ZORRO DE CRISTAL.jpeg",claves:"Astucia · Adaptación · Engaño",territorio:"Elegir cómo actuar según las circunstancias.",derecho:"Ingenio, flexibilidad, lectura del entorno y encontrar una ruta alternativa cuando el camino directo falla.",invertida:"Manipular para conseguir ventaja; cambiar de estrategia tan a menudo que no se avanza; desconfiar de todos o complicar deliberadamente lo sencillo.",icono:"♢"},
+{n:6,nombre:"La Máscara Vacía",imagen:"imagenes/6.LA MASCARA VACIA.jpeg",claves:"Identidad · Apariencia · Ocultación",territorio:"La diferencia entre lo que mostramos y lo que reservamos para nosotros.",derecho:"Proteger la intimidad, adaptar la conducta a un contexto, explorar nuevas facetas del yo, autenticidad y confianza.",invertida:"Vivir para satisfacer expectativas; confundir el papel que se representa con la identidad propia; ocultarse tanto que nadie puede conocernos realmente; pérdida del yo, de confianza o de ideales.",icono:"◉"},
+{n:7,nombre:"El Árbol Invertido",imagen:"imagenes/7.EL ARBOL INVERTIDO.jpeg",claves:"Perspectiva · Origen · Desarraigo",territorio:"Cambiar el marco desde el que se interpreta una situación.",derecho:"Cuestionar una norma, descubrir una perspectiva nueva, revisar las propias raíces y encontrar una forma diferente de entender el mundo.",invertida:"Rebelarse por sistema; rechazar los orígenes sin comprenderlos; perder el contexto o adoptar una perspectiva alternativa solo porque parece contraria a la mayoría: rebelión sin propósito.",icono:"♧"},
+{n:8,nombre:"La Tormenta en el Frasco",imagen:"imagenes/8.LA TORMENTA EN EL FRASCO.jpeg",claves:"Intensidad · Poder contenido · Presión",territorio:"La energía que se acumula cuando algo no encuentra salida.",derecho:"Emoción intensa, fuerza interior, tensión que puede convertirse en acción, preparación para actuar y capacidad de control emocional.",invertida:"Emoción contenida o descarga; dispersión de energía en demasiados frentes o agotamiento por mantener la presión; pérdida de control emocional o calma aparente.",icono:"ϟ"},
+{n:9,nombre:"La Llama Azul",imagen:"imagenes/9.LA LLAMA AZUL.png",claves:"Conocimiento · Concentración · Frialdad",territorio:"Comprender algo mediante atención, práctica y pensamiento claro.",derecho:"Concentración, aprendizaje profundo, análisis riguroso, habilidad adquirida, decisiones meditadas, guía y claridad mental.",invertida:"Análisis interminable que impide actuar; rigidez intelectual; distanciamiento emocional; confundir saber mucho con comprender bien; obsesión intelectual.",icono:"♨"},
+{n:10,nombre:"La Copa Desbordada",imagen:"imagenes/10.LA COPA DESBORDADA.jpeg",claves:"Abundancia · Generosidad · Exceso",territorio:"Tener tanto de algo que compartirlo es posible, pero administrarlo se vuelve necesario.",derecho:"Afecto, celebración, recursos suficientes, generosidad que nace de la plenitud y abundancia.",invertida:"Exceso que termina saturando; dar por obligación; depender de recibir atención; confundir abundancia con consumo ilimitado o ignorar cuándo basta; avaricia y materialismo.",icono:"♜"},
+{n:11,nombre:"El Insecto de Hielo",imagen:"imagenes/11.EL INSECTO DE HIELO.jpeg",claves:"Espera · Conservación · Estancamiento",territorio:"Mantener intacto algo valioso mientras se espera el momento adecuado.",derecho:"Esperar cuando ya es necesario actuar; preservar algo que ha perdido su utilidad; aferrarse a la seguridad por miedo al cambio; dejar pasar una oportunidad por cautela excesiva; repetir hábitos y decisiones que mantienen una situación inmóvil.",invertida:"Paciencia estratégica, proteger recursos, evitar una decisión prematura, conservar energía hasta que las condiciones sean mejores; reconocer un ciclo recurrente y conservar lo bueno del patrón.",icono:"❄"},
+{n:12,nombre:"El Pez del Aire",imagen:"imagenes/12.EL PEZ DEL AIRE.jpeg",claves:"Imposibilidad · Imaginación · Excepción",territorio:"El arte, la imaginación y la capacidad de concebir lo extraordinario; la belleza de lo imposible y la fe en posibilidades aún no manifestadas.",derecho:"Ideas insólitas, creatividad excepcional y originalidad; imaginación desbordada, romper límites mentales, milagros improbables, convertir fantasía en realidad; belleza, inspiración, expresión artística y esperanza.",invertida:"Confundir una posibilidad con una garantía; ignorar restricciones reales; perseguir fantasías sin convertirlas en planes; negar la realidad o crear castillos en el aire; perder la fe en la propia capacidad creadora o reprimir la imaginación por miedo.",icono:"♧"},
+{n:13,nombre:"El Reloj sin Agujas",imagen:"imagenes/13.EL RELOJ SIN AGUJAS.png",claves:"Ritmo propio · Incertidumbre · Pausa o presente",territorio:"La relación entre el tiempo que marca el mundo y el que necesita una persona.",derecho:"Respetar el propio ritmo, abandonar comparaciones, vivir el presente y aceptar que ciertos procesos no se pueden acelerar.",invertida:"Perder la noción de los plazos; aplazar decisiones indefinidamente; esperar a sentir una certeza perfecta que quizá nunca llegue; utilizar el «ya llegará» para evitar actuar.",icono:"◷"},
+{n:14,nombre:"El Ciervo del Reflejo",imagen:"imagenes/14.EL CIERVO DEL REFLEJO.png",claves:"Dualidad · Identidad · Contradicción",territorio:"Aprender de uno mismo: autoconocimiento.",derecho:"Aceptar contradicciones, reconciliar necesidades distintas, comprender una perspectiva opuesta sin tener que adoptarla; integrar necesidades opuestas y buscar un punto de convivencia.",invertida:"Hipocresía; exigir coherencia absoluta; negar una parte propia o vivir un conflicto interior; no reconocer los propios defectos; descuidar las necesidades propias; autocrítica paralizante o intentar mantener un equilibrio imposible.",icono:"❧"},
+{n:15,nombre:"La Escalera Rota",imagen:"imagenes/15.LA ESCALERA ROTA.png",claves:"Ambición · Esfuerzo · Atajos",territorio:"La distancia entre querer alcanzar una meta y encontrar un método que realmente conduzca a ella; rigidez y rutina sin propósito.",derecho:"Perseguir una meta inadecuada; insistir en un método que no funciona; tomar atajos que comprometen el resultado; sacrificar demasiado por un logro que ha dejado de importar; ambición ciega o alcanzar el resultado a costa de perder aquello que le daba sentido.",invertida:"Perseverancia, planificación, esfuerzo sostenido, aspiración, capacidad de liderazgo, avance, constancia, método y compromiso con un objetivo; éxito.",icono:"⚒"},
+{n:16,nombre:"El Cuervo de la Perla",imagen:"imagenes/16.EL CUERVO DE LA PERLA.png",claves:"Hallazgo · Valor oculto · Codicia",territorio:"Reconocer algo valioso donde otros no lo habían visto.",derecho:"Descubrir una oportunidad, apreciar una cualidad ignorada, encontrar utilidad en lo descartado, reconocer el mérito de alguien, intuición práctica y recompensa inesperada.",invertida:"Codicia; perder por codiciosos; confundir valor con precio; apropiarse de lo ajeno, como un mérito o un objeto; querer poseer algo precisamente porque otros lo desean.",icono:"◈"},
+{n:17,nombre:"El Barco de Papel",imagen:"imagenes/17.EL BARCO DE PAPEL.png",claves:"Vulnerabilidad · Aventura · Confianza",territorio:"Emprender un viaje aceptando que no se puede controlar todo lo que ocurrirá.",derecho:"Explorar lo desconocido, empezar pese a la incertidumbre, confiar con prudencia, aceptar la vulnerabilidad como parte de la experiencia; valentía pese a la fragilidad, nuevos caminos y voluntad.",invertida:"Lanzarse sin preparación; confiar sin observar las circunstancias; confianza excesiva; esperar garantías imposibles antes de partir; planes frágiles; miedo a salir de lo conocido o falta de voluntad.",icono:"⌁"},
+{n:18,nombre:"El Espejo Ciego",imagen:"imagenes/18.EL ESPEJO CIEGO.png",claves:"Desconocimiento · Límites · Punto ciego",territorio:"Aceptar que nuestra percepción es limitada, incluso cuando creemos estar viendo con claridad.",derecho:"Humildad ante lo desconocido, admitir la falta de pruebas, revisar una impresión, descubrir que la propia perspectiva es incompleta y reconocer los límites propios.",invertida:"Falsa certeza; rechazo de evidencias incómodas; incapacidad para corregir un error; insistir en que algo es imposible de saber o ignorar lo evidente.",icono:"◌"},
+{n:19,nombre:"El Hilo Rojo",imagen:"imagenes/19.EL HILO ROJO.png",claves:"Conexión · Reciprocidad · Dependencia",territorio:"Los lazos que se forman entre personas y la influencia que ejercen mutuamente.",derecho:"Encuentro significativo, colaboración, apoyo mutuo, vínculo que ayuda a crecer, reconocer cómo una relación conecta caminos distintos; vínculos, atracción, armonía de valores, empatía, escucha y apoyo mutuo.",invertida:"Dependencia emocional o práctica; vínculo desequilibrado o asfixiante; confundir coincidencia con destino inevitable; mantener una conexión por miedo a separarse; incompatibilidad, conflicto de valores, compasión agotadora o indulgencia que impide reconocer un daño.",icono:"∞"},
+{n:20,nombre:"La Casa Solitaria",imagen:"imagenes/20.LA CASA SOLITARIA.png",claves:"Refugio · Intimidad · Aislamiento",territorio:"El espacio propio que permite recuperar fuerzas y establecer límites.",derecho:"Descanso, intimidad elegida, independencia, construir una base segura desde la que volver al mundo; seguridad, espacio personal y reflexión.",invertida:"Convertir la protección en encierro; aislarse para evitar cualquier incomodidad; rechazar ayuda necesaria; dejar que otros decidir quién puede entrar en el espacio propio; soledad no deseada, miedo a abrirse o retraimiento.",icono:"⌂"},
+{n:21,nombre:"La Última Hoja",imagen:"imagenes/21.LA ULTIMA HOJA.png",claves:"Resistencia · Legado · Persistencia",territorio:"Decidir qué merece sostenerse cuando casi todo ha cambiado.",derecho:"Preservar lo esencial, resistir una dificultad concreta, mantener la esperanza en tiempos difíciles, transmitir algo valioso a la siguiente etapa y supervivencia.",invertida:"Insistir por orgullo; agotar los recursos en algo irrecuperable; confundir resistir con negarse a despedirse; aferrarse a una versión pasada de uno mismo o a lo que terminó; agotamiento, resistencia inútil y negarse a cerrar una etapa.",icono:"❧"},
+{n:22,nombre:"El Umbral",imagen:"imagenes/22.EL UMBRAL.png",claves:"Transición · Elección · Renacimiento",territorio:"El momento en que una posibilidad debe convertirse en una decisión.",derecho:"Elegir conscientemente; cerrar una etapa; aceptar que avanzar implica renunciar a otras opciones; comprometerse con un camino; decisiones importantes; equilibrio entre lo que fue y lo que será; giro de circunstancias, cambio de ciclo y transformación profunda. Es el momento de cruzar, soltar y avanzar, sabiendo que lo que viene también forma parte del camino; plenitud.",invertida:"Posponer la elección por miedo a perder alternativas; cambiar de rumbo por inseguridad; tomar una decisión precipitada para escapar de la incertidumbre; regresar a lo conocido sin revisar por qué se marchó; estancamiento, miedo al cambio, decisiones impulsivas, volver al pasado o resistirse al cambio. Puede indicar confusión sobre qué camino elegir o temor a lo que hay al otro lado; cierre incompleto.",icono:"⌑"}
+];
+
+const posiciones = {
+  1: ["Tu reflexión"],
+  3: ["Situación / pasado", "Reto / presente", "Orientación / posible evolución"],
+  5: ["Situación", "Obstáculo", "Lo que no estás viendo", "Consejo", "Posible evolución"]
+};
+
+// Arreglo para guardar el historial de tiradas
+const historialTiradas = [];
+
+function mezclar(array) {
+  const copia = [...array];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+
+// Crea el marco y carga la imagen indicada en cada carta.
+function crearImagen(carta, invertida = false) {
+  const marco = document.createElement("div");
+  marco.className = "imagen-marco";
+
+  const img = document.createElement("img");
+  img.className = "imagen-carta";
+  if (invertida) img.classList.add("imagen-invertida");
+  img.src = carta.imagen;
+  img.alt = carta.nombre;
+
+  const fallback = document.createElement("span");
+  fallback.className = "imagen-fallback";
+  fallback.textContent = carta.icono;
+  fallback.hidden = true;
+
+  img.addEventListener("error", () => {
+    img.hidden = true;
+    fallback.hidden = false;
+    console.error("No se ha podido cargar la imagen:", carta.imagen);
+  });
+
+  marco.append(img, fallback);
+  return marco;
+}
+
+function hacerTirada() {
+  const cantidad = Number(document.getElementById("cantidad").value);
+  const elegidas = mezclar(cartas).slice(0, cantidad);
+  const contenedor = document.getElementById("tirada");
+  contenedor.classList.toggle("tirada-cinco", cantidad === 5);
+  contenedor.replaceChildren();
+
+  // Div independiente que contiene solo las imágenes de las cartas elegidas.
+  const galeriaImagenes = document.getElementById("imagenes-tirada");
+  galeriaImagenes.replaceChildren();
+  galeriaImagenes.classList.toggle("tirada-cinco-imagenes", cantidad === 5);
+  document.getElementById("titulo-imagenes-tirada").style.display = "block";
+
+  const datosTiradaActual = [];
+
+  elegidas.forEach((carta, i) => {
+    const invertida = Math.random() < 0.5;
+    const significado = invertida ? carta.invertida : carta.derecho;
+    const posicionNombre = posiciones[cantidad][i];
+
+    // Guardar para el historial
+    datosTiradaActual.push({
+      carta,
+      posicion: posicionNombre,
+      invertida
+    });
+
+    const article = document.createElement("article");
+    article.className = "carta";
+
+    const numero = document.createElement("div");
+    numero.className = "numero";
+    numero.textContent = `ARCANO ${carta.n}`;
+
+    const icono = document.createElement("div");
+    icono.className = "icono";
+    icono.textContent = invertida ? `↻ ${carta.icono}` : carta.icono;
+
+    const nombre = document.createElement("h3");
+    nombre.textContent = carta.nombre;
+
+    const etiqueta = document.createElement("div");
+    etiqueta.className = "etiqueta";
+    etiqueta.textContent = `${posicionNombre} · ${invertida ? "Invertida" : "Al derecho"}`;
+
+    const claves = document.createElement("p");
+    claves.innerHTML = "<strong>Claves:</strong> ";
+    claves.append(document.createTextNode(carta.claves));
+
+    const territorio = document.createElement("p");
+    territorio.innerHTML = "<strong>Territorio:</strong> ";
+    territorio.append(document.createTextNode(carta.territorio));
+
+    const desc = document.createElement("p");
+    desc.innerHTML = `<strong>Significado ${invertida ? "invertido" : "al derecho"}:</strong> `;
+    desc.append(document.createTextNode(significado));
+
+    // En la galería superior solo se muestra la imagen, sin texto de significado.
+    const bloqueImagen = document.createElement("div");
+    bloqueImagen.appendChild(crearImagen(carta, invertida));
+    const posicionImagen = document.createElement("div");
+    posicionImagen.className = "imagen-posicion";
+    posicionImagen.textContent = posicionNombre;
+    bloqueImagen.appendChild(posicionImagen);
+    galeriaImagenes.appendChild(bloqueImagen);
+
+    article.append(numero, crearImagen(carta, invertida), icono, nombre, etiqueta, claves, territorio, desc);
+    contenedor.appendChild(article);
+  });
+
+  // Guardar en el historial con fecha y hora
+  const fechaHora = new Date().toLocaleString("es-ES", {
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    day: "2-digit", month: "2-digit", year: "numeric"
+  });
+
+  historialTiradas.unshift({
+    fecha: fechaHora,
+    cantidad: cantidad,
+    cartas: datosTiradaActual
+  });
+
+  actualizarHistorialUI();
+}
+
+function actualizarHistorialUI() {
+  const contenedor = document.getElementById("historial");
+  contenedor.replaceChildren();
+
+  if (historialTiradas.length === 0) {
+    contenedor.innerHTML = '<p class="vacio">Aún no has realizado ninguna tirada en esta sesión.</p>';
+    return;
+  }
+
+  historialTiradas.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = "historial-item";
+
+    const header = document.createElement("div");
+    header.className = "historial-header";
+
+    const fecha = document.createElement("span");
+    fecha.className = "historial-fecha";
+    fecha.textContent = `Tirada de ${item.cantidad} carta(s) - ${item.fecha}`;
+
+    header.appendChild(fecha);
+    div.appendChild(header);
+
+    const grid = document.createElement("div");
+    grid.className = "historial-grid";
+
+    item.cartas.forEach(c => {
+      const cartaDiv = document.createElement("div");
+      cartaDiv.className = "historial-carta";
+      cartaDiv.innerHTML = `
+        <div><strong>${c.posicion}</strong></div>
+        <div>${c.carta.icono} ${c.carta.n}. ${c.carta.nombre}</div>
+        <div style="font-size:0.8rem; color:var(--suave);">${c.invertida ? "Invertida ↻" : "Al derecho"}</div>
+      `;
+      grid.appendChild(cartaDiv);
+    });
+
+    div.appendChild(grid);
+    contenedor.appendChild(div);
+  });
+}
+
+function mostrarMazo() {
+  const termino = document.getElementById("busqueda").value.toLocaleLowerCase("es").trim();
+  const contenedor = document.getElementById("mazo");
+  contenedor.replaceChildren();
+
+  const filtradas = cartas.filter(c => {
+    const texto = `${c.n} ${c.nombre} ${c.claves} ${c.territorio} ${c.derecho} ${c.invertida}`.toLocaleLowerCase("es");
+    return texto.includes(termino);
+  });
+
+  if (!filtradas.length) {
+    const p = document.createElement("p");
+    p.className = "vacio";
+    p.textContent = "No se encontraron cartas con esa búsqueda.";
+    contenedor.appendChild(p);
+    return;
+  }
+
+  filtradas.forEach(c => {
+    const ficha = document.createElement("article");
+    ficha.className = "ficha";
+
+    const h = document.createElement("h3");
+    h.textContent = `${c.n}. ${c.nombre}`;
+
+    const claves = document.createElement("div");
+    claves.className = "claves";
+    claves.textContent = c.claves;
+
+    const territorio = document.createElement("p");
+    territorio.innerHTML = "<strong>Territorio:</strong> ";
+    territorio.append(document.createTextNode(c.territorio));
+
+    const derecho = document.createElement("p");
+    derecho.innerHTML = "<strong>Al derecho:</strong> ";
+    derecho.append(document.createTextNode(c.derecho));
+
+    const invertida = document.createElement("p");
+    invertida.innerHTML = "<strong>Invertida:</strong> ";
+    invertida.append(document.createTextNode(c.invertida));
+
+    ficha.append(crearImagen(c), h, claves, territorio, derecho, invertida);
+    contenedor.appendChild(ficha);
+  });
+}
+
+document.getElementById("tirar").addEventListener("click", hacerTirada);
+document.getElementById("limpiar").addEventListener("click", () => {
+  const tirada = document.getElementById("tirada");
+  tirada.classList.remove("tirada-cinco");
+  tirada.innerHTML = '<p class="vacio">Tus cartas aparecerán aquí.</p>';
+  document.getElementById("imagenes-tirada").replaceChildren();
+  document.getElementById("imagenes-tirada").classList.remove("tirada-cinco-imagenes");
+  document.getElementById("titulo-imagenes-tirada").style.display = "none";
+});
+document.getElementById("borrarHistorial").addEventListener("click", () => {
+  historialTiradas.length = 0;
+  actualizarHistorialUI();
+});
+document.getElementById("busqueda").addEventListener("input", mostrarMazo);
+mostrarMazo();
+</script>
+</body>
+</html>
